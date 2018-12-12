@@ -5,7 +5,7 @@ import operator
 def power_level(x, y, serial):
     power = ((x+10) * y) + serial
     power *= (x+10)
-    power = (power/100) % 10
+    power = (power//100) % 10
     power -= 5
     return power
 
@@ -20,17 +20,18 @@ def p1(grid):
 
 def p2(grid):
     grid_sum = {}
-    for x in range(1,301):
-        for y in range(1,301):
-            for size in range(1,min(302-x, 302-y)):
+    for size in range(1,301):
+        for x in range(1,301-size):
+            for y in range(1,301-size):
                 if size == 1:
                     grid_sum[(x,y,size)] = grid[(x,y)]
+                elif size == 2:
+                    grid_sum[(x,y,size)] = grid[(x,y)]+grid[(x+1,y)]+grid[(x,y+1)]+grid[(x+1,y+1)]
                 else:
-                    grid_sum[(x,y,size)] = grid_sum[(x,y,size-1)]
-                    for i in range(x, x+size):
-                        grid_sum[(x,y,size)] += grid[(i,y+size-1)]
-                    for j in range(y, y+size-1): # warning don't add twice the bottom right corner
-                        grid_sum[(x,y,size)] += grid[(x+size-1,j)]
+                    grid_sum[(x,y,size)] = grid_sum[(x+1,y+0,size-1)] \
+                                         + grid_sum[(x+0,y+1,size-1)] \
+                                         - grid_sum[(x+1,y+1,size-2)] \
+                                         + grid[(x,y)] + grid[(x+size,y+size)]
     return "{},{},{}".format(*max(grid_sum.items(), key=operator.itemgetter(1))[0])
 
 if __name__ == "__main__":
