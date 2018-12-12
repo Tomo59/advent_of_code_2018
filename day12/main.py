@@ -9,7 +9,7 @@ def p1(initial_state, combis, nb_round):
     for i in range(nb_round):
         new_states = [False, False]
         for x in range(states_len-4):
-            new_states.append(combis[(states[x], states[x+1], states[x+2], states[x+3], states[x+4])])
+            new_states.append((states[x], states[x+1], states[x+2], states[x+3], states[x+4]) in combis)
         new_states.extend([False, False])
         states = new_states
     result = 0
@@ -31,6 +31,13 @@ def normalize(states):
         new_states[k] = states[k+k_min]
     return (new_states, k_min)
     
+def next_state(states, x, combis):
+    return (states.get(x-2, False),
+            states.get(x-1, False),
+            states.get(x  , False),
+            states.get(x+1, False),
+            states.get(x+2, False)) in combis
+
 def beautiful(s):
     result = ""
     for k in sorted(s.keys()):
@@ -54,26 +61,18 @@ def p2(initial_state, combis, nb_round):
         states_list.append(states)
         shift_list.append(new_shift)
         new_states = {}
+
         for x in states.keys():
-            new_states[x] = combis[(states.get(x-2, False),
-                                    states.get(x-1, False),
-                                    states.get(x  , False),
-                                    states.get(x+1, False),
-                                    states.get(x+2, False))]
+            new_states[x] = next_state(states, x, combis)
+
         x = min(states.keys()) - 1
-        if combis[(states.get(x-2, False),
-                   states.get(x-1, False),
-                   states.get(x  , False),
-                   states.get(x+1, False),
-                   states.get(x+2, False))]:
+        if next_state(states, x, combis):
             new_states[x] = True
+
         x = max(states.keys()) + 1
-        if combis[(states.get(x-2, False),
-                   states.get(x-1, False),
-                   states.get(x  , False),
-                   states.get(x+1, False),
-                   states.get(x+2, False))]:
+        if next_state(states, x, combis):
             new_states[x] = True
+
         (states, new_shift) = normalize(new_states)
         shift += new_shift
         loop += 1
@@ -107,9 +106,10 @@ if __name__ == "__main__":
     f = open('input.txt', 'r')
     initial_state = [x == '#' for x in f.readline()[15:]]
     f.readline() # read empty line
-    combis = {}
+    combis = set()
     for l in f.readlines():
-        combis[(l[0] == '#', l[1] == '#', l[2] == '#', l[3] == '#', l[4] == '#')] = l[9] == '#'
+        if l[9] == '#':
+            combis.add((l[0] == '#', l[1] == '#', l[2] == '#', l[3] == '#', l[4] == '#'))
     print("part1: {}".format(p1(initial_state, combis, 20)))
     print("part1 (with p2): {}".format(p2(initial_state, combis, 20)))
     print("part2: {}".format(p2(initial_state, combis, 50000000000)))
